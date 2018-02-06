@@ -1,4 +1,6 @@
-package net.slipp.web;
+package net.slipp;
+
+//@Entity
 
 public class User {
 
@@ -23,7 +25,6 @@ public class User {
 		this.email = email;
 	}
 
-	
 	public String getName() {
 		return name;
 	}
