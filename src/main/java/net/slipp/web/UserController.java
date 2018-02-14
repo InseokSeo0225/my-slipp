@@ -34,20 +34,27 @@ public class UserController {
 
 		System.out.println(userId);
 		System.out.println(password);
-		//System.out.println(user.getPassword());		//못가지고 오네...
-		
+		// System.out.println(user.getPassword()); //못가지고 오네...
+
 		System.out.println(user);
 		if (user == null) {
-			return "redirect:/users/loginFrom";
+			return "redirect:/users/loginForm";
 		}
 
 		if (!password.equals(user.getPassword())) {
-			return "redirect:/users/loginFrom";
+			return "redirect:/users/loginForm";
 		}
 
-		session.setAttribute("user", user);
+		System.out.println("Login Success!!");
+		session.setAttribute("sessioneduser", user);
 
-		return "redirct:/";
+		return "redirect:/";
+	}
+
+	@GetMapping("/logout")
+	public String logout(HttpSession session) {
+		session.removeAttribute("sessioneduser");
+		return "redirect:/";
 	}
 
 	@PostMapping("") // POST 메서드: 새로운 사용자를 추가하겠구나... 강의 3-3
@@ -72,16 +79,42 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}/form")
-	public String updateFrom(@PathVariable Long id, Model model) {
+	public String updateFrom(@PathVariable Long id, Model model, HttpSession session) {
+		
+		//User user = session.getAttribute("sessioneduser");
+		Object tempUser = session.getAttribute("sessioneduser");
+		
+		if(tempUser == null) {
+			return "redirect:/users/loginForm";
+		}
+		
+		User sessionedUser = (User)tempUser;
+		if(!id.equals(sessionedUser.getId())) {
+			throw new IllegalStateException("You Can't update another user");
+			}
+		
+		
+		
 		// model.addAttribute("user", userRepository.findAll());
 		System.out.println("사용자 수정 (udpateFrom)");
-		User user = userRepository.findOne(id);
+		User user = userRepository.findOne(id); //or		
+		//User user = userRepository.findOne(sessionedUser.getId()); //이렇게 해도 됨.
 		model.addAttribute("user", user);
 		return "/user/updateForm";
 	}
 
 	@PutMapping("/{id}")
-	public String update(@PathVariable Long id, User newUser) {
+	public String update(@PathVariable Long id, User newUser, HttpSession session) {
+		
+		Object tempUser = session.getAttribute("sessioneduser");
+		if(tempUser == null) {
+			return "redirect:/users/loginForm";
+		}
+		User sessionedUser = (User)tempUser;
+		if(!id.equals(sessionedUser.getId())) {
+			throw new IllegalStateException("You Can't update another user");
+			}
+		
 		User user = userRepository.findOne(id);
 		user.update(newUser);
 		userRepository.save(user);
